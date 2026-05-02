@@ -3,8 +3,7 @@ name: Naukri Auto Update
 on:
   workflow_dispatch:
   schedule:
-    - cron: "30 3,8 * * *" # 09:00 and 14:00 IST (UTC+5:30)
-
+    - cron: "30 2,7 * * *" # 08:00 and 13:00 IST
 jobs:
   run-script:
     runs-on: ubuntu-latest
