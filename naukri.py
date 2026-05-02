@@ -229,7 +229,8 @@ def LoadNaukri(headless):
     options.add_experimental_option("useAutomationExtension", False)
     options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
 
-    options.add_argument("--headless=new")          # IMPORTANT (GitHub Actions)
+    if headless:
+     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
@@ -288,6 +289,9 @@ def naukriLogin(headless=False):
             passFieldElement.send_keys(password)
             time.sleep(1)
             loginButton.send_keys(Keys.ENTER)
+            print("After login submit URL:", driver.current_url)
+            print("After login submit title:", driver.title)
+            print("After login submit source has ff-inventory:", "ff-inventory" in driver.page_source)
             time.sleep(3)
 
             # Added click to Skip button
@@ -515,7 +519,7 @@ def main():
     log_msg("-----Naukri.py Script Run Begin-----")
     driver = None
     try:
-        status, driver = naukriLogin(headless=False)
+        status, driver = naukriLogin(headless=True)
         if status:
             UpdateProfile(driver)
             resume_source_path = pick_resume_by_date(originalResumePath)
