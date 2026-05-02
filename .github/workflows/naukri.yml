@@ -25,5 +25,16 @@ jobs:
 
       - name: Run Script
         env:
+          NAUKRI_USERNAME: ${{ secrets.NAUKRI_USERNAME }}
+          NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
+          MOBILE: ${{ secrets.MOBILE }}
           RESUME_DATE_WISE: "true"
         run: python naukri.py
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: naukri-logs
+          path: naukri.log
+          retention-days: 30
