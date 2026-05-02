@@ -22,6 +22,17 @@ jobs:
           sudo apt update
           sudo apt install -y chromium-browser
 
+      - name: Check env presence
+        run: |
+          if [ -z "$NAUKRI_USERNAME" ]; then echo "NAUKRI_USERNAME missing"; exit 1; fi
+          if [ -z "$NAUKRI_PASSWORD" ]; then echo "NAUKRI_PASSWORD missing"; exit 1; fi
+          if [ -z "$MOBILE" ]; then echo "MOBILE missing"; exit 1; fi
+          echo "All required env vars are present"
+        env:
+          NAUKRI_USERNAME: ${{ secrets.NAUKRI_USERNAME }}
+          NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
+          MOBILE: ${{ secrets.MOBILE }}
+
       - name: Run Script
         env:
           NAUKRI_USERNAME: ${{ secrets.NAUKRI_USERNAME }}
