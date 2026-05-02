@@ -258,69 +258,123 @@ def naukriLogin(headless=False):
     """Open Chrome browser and Login to Naukri.com"""
     status = False
     driver = None
-    username_locator = "usernameField"
-    password_locator = "passwordField"
-    login_btn_locator = "//*[@type='submit' and normalize-space()='Login']"
-    skip_locator = "//*[text() = 'SKIP AND CONTINUE']"
-    close_locator = "//*[contains(@class, 'cross-icon') or @alt='cross-icon']"
+    emailFieldElement = None
+    passFieldElement = None
+    loginButton = None
 
     try:
-        driver = LoadNaukri(headless)
-
-        log_msg(driver.title)
-        if "naukri.com" in driver.title.lower():
-            log_msg("Website Loaded Successfully.")
-
-        emailFieldElement = None
-        if is_element_present(driver, By.ID, username_locator):
-            emailFieldElement = GetElement(driver, username_locator, locator="ID")
-            time.sleep(1)
-            passFieldElement = GetElement(driver, password_locator, locator="ID")
-            time.sleep(1)
-            loginButton = GetElement(driver, login_btn_locator, locator="XPATH")
-        else:
-            log_msg("None of the elements found to login.")
-
-        if emailFieldElement is not None:
-            emailFieldElement.clear()
-            emailFieldElement.send_keys(username)
-            time.sleep(1)
-            passFieldElement.clear()
-            passFieldElement.send_keys(password)
-            time.sleep(1)
-            try:
-                loginButton.click()
-            except Exception:
-                driver.execute_script("arguments[0].click();", loginButton)
-            time.sleep(5)
-            print("After login submit URL:", driver.current_url)
-            print("After login submit title:", driver.title)
-            print("After login submit source has ff-inventory:", "ff-inventory" in driver.page_source)
-
-            if "nlogin/login" in driver.current_url or "Login" in driver.title:
-                log_msg("Login did not leave login page")
-                return (status, driver)
-
-            # Added click to Skip button
-            print("Checking Skip button")
-            if WaitTillElementPresent(driver, close_locator, "XPATH", 10):
-                GetElement(driver, close_locator, "XPATH").click()
-            if WaitTillElementPresent(driver, skip_locator, "XPATH", 5):
-                GetElement(driver, skip_locator, "XPATH").click()
-
-            # CheckPoint to verify login
-            if WaitTillElementPresent(driver, "ff-inventory", locator="ID", timeout=40):
-                CheckPoint = GetElement(driver, "ff-inventory", locator="ID")
-                if CheckPoint:
-                    log_msg("Naukri Login Successful")
-                    status = True
-                    return (status, driver)
-
-            log_msg("Unknown Login Error")
+        driver = LoadNaukri(headless=headless)  # USE PARAMETER, NOT HARDCODED
+        time.sleep(3)
+        
+        log_msg("Current URL after load: %s" % driver.current_url)
+        log_msg("Page title: %s" % driver.title)
+        
+        # Try multiple email field selectors
+        email_selectors = [
+            (By.ID, "usernameField"),
+            (By.ID, "email"),
+            (By.NAME, "email"),
+            (By.NAME, "username"),
+            (By.CSS_SELECTOR, "input[type='text'][placeholder*='Email']"),
+            (By.CSS_SELECTOR, "input[type='text'][placeholder*='Username']"),
+            (By.XPATH, "//input[@type='text' and @name]"),
+        ]
+        
+        for locator_type, selector in email_selectors:
+            if is_element_present(driver, locator_type, selector):
+                emailFieldElement = GetElement(driver, selector, locator=locator_type.name)
+                log_msg("Found email field with %s: %s" % (locator_type.name, selector))
+                break
+        
+        if emailFieldElement is None:
+            log_msg("Email field not found with any selector")
             return (status, driver)
-
+        
+        # Try multiple password field selectors
+        password_selectors = [
+            (By.ID, "passwordField"),
+            (By.ID, "password"),
+            (By.NAME, "password"),
+            (By.CSS_SELECTOR, "input[type='password']"),
+        ]
+        
+        for locator_type, selector in password_selectors:
+            if is_element_present(driver, locator_type, selector):
+                passFieldElement = GetElement(driver, selector, locator=locator_type.name)
+                log_msg("Found password field with %s: %s" % (locator_type.name, selector))
+                break
+        
+        if passFieldElement is None:
+            log_msg("Password field not found with any selector")
+            return (status, driver)
+        
+        # Try multiple login button selectors
+        login_selectors = [
+            (By.XPATH, "//*[@type='submit' and normalize-space()='Login']"),
+            (By.XPATH, "//button[contains(normalize-space(), 'Login') and @type='submit']"),
+            (By.XPATH, "//button[@type='submit']"),
+        ]
+        
+        for locator_type, selector in login_selectors:
+            if is_element_present(driver, locator_type, selector):
+                loginButton = GetElement(driver, selector, locator=locator_type.name)
+                log_msg("Found login button with %s: %s" % (locator_type.name, selector))
+                break
+        
+        if loginButton is None:
+            log_msg("Login button not found with any selector")
+            return (status, driver)
+        
+        # Fill and submit login form
+        emailFieldElement.clear()
+        emailFieldElement.send_keys(username)
+        time.sleep(1)
+        
+        passFieldElement.clear()
+        passFieldElement.send_keys(password)
+        time.sleep(1)
+        
+        try:
+            loginButton.click()
+        except Exception:
+            driver.execute_script("arguments[0].click();", loginButton)
+        
+        time.sleep(5)
+        log_msg("After login submit URL: %s" % driver.current_url)
+        log_msg("After login submit title: %s" % driver.title)
+        
+        if "nlogin/login" in driver.current_url or "Login" in driver.title:
+            log_msg("Login did not leave login page")
+            return (status, driver)
+        
+        # Check for skip button
+        skip_selectors = [
+            (By.XPATH, "//*[text() = 'SKIP AND CONTINUE']"),
+            (By.XPATH, "//button[contains(text(), 'SKIP')]"),
+        ]
+        for locator_type, selector in skip_selectors:
+            if WaitTillElementPresent(driver, selector, locator=locator_type.name, timeout=5):
+                GetElement(driver, selector, locator=locator_type.name).click()
+                break
+        
+        # Check for close button
+        if WaitTillElementPresent(driver, "//*[contains(@class, 'cross-icon') or @alt='cross-icon']", "XPATH", 5):
+            GetElement(driver, "//*[contains(@class, 'cross-icon') or @alt='cross-icon']", "XPATH").click()
+        
+        # Verify login success
+        if WaitTillElementPresent(driver, "ff-inventory", locator="ID", timeout=40):
+            CheckPoint = GetElement(driver, "ff-inventory", locator="ID")
+            if CheckPoint:
+                log_msg("Naukri Login Successful")
+                status = True
+                return (status, driver)
+        
+        log_msg("Unknown Login Error")
+        return (status, driver)
+    
     except Exception as e:
         catch(e)
+    
     return (status, driver)
 
 
