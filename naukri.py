@@ -230,7 +230,7 @@ def LoadNaukri(headless):
     options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
 
     if headless:
-     options.add_argument("--headless=new")
+        options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
@@ -288,11 +288,18 @@ def naukriLogin(headless=False):
             passFieldElement.clear()
             passFieldElement.send_keys(password)
             time.sleep(1)
-            loginButton.send_keys(Keys.ENTER)
+            try:
+                loginButton.click()
+            except Exception:
+                driver.execute_script("arguments[0].click();", loginButton)
+            time.sleep(5)
             print("After login submit URL:", driver.current_url)
             print("After login submit title:", driver.title)
             print("After login submit source has ff-inventory:", "ff-inventory" in driver.page_source)
-            time.sleep(3)
+
+            if "nlogin/login" in driver.current_url or "Login" in driver.title:
+                log_msg("Login did not leave login page")
+                return (status, driver)
 
             # Added click to Skip button
             print("Checking Skip button")
@@ -308,12 +315,9 @@ def naukriLogin(headless=False):
                     log_msg("Naukri Login Successful")
                     status = True
                     return (status, driver)
-                else:
-                    log_msg("Unknown Login Error")
-                    return (status, driver)
-            else:
-                log_msg("Unknown Login Error")
-                return (status, driver)
+
+            log_msg("Unknown Login Error")
+            return (status, driver)
 
     except Exception as e:
         catch(e)
