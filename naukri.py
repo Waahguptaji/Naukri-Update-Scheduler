@@ -282,8 +282,8 @@ def naukriLogin(headless=False):
         
         for locator_type, selector in email_selectors:
             if is_element_present(driver, locator_type, selector):
-                emailFieldElement = GetElement(driver, selector, locator=locator_type.name)
-                log_msg("Found email field with %s: %s" % (locator_type.name, selector))
+                emailFieldElement = GetElement(driver, selector, locator=locator_type)
+                log_msg("Found email field with %s: %s" % (locator_type, selector))
                 break
         
         if emailFieldElement is None:
@@ -300,8 +300,8 @@ def naukriLogin(headless=False):
         
         for locator_type, selector in password_selectors:
             if is_element_present(driver, locator_type, selector):
-                passFieldElement = GetElement(driver, selector, locator=locator_type.name)
-                log_msg("Found password field with %s: %s" % (locator_type.name, selector))
+                passFieldElement = GetElement(driver, selector, locator=locator_type)
+                log_msg("Found password field with %s: %s" % (locator_type, selector))
                 break
         
         if passFieldElement is None:
@@ -317,8 +317,8 @@ def naukriLogin(headless=False):
         
         for locator_type, selector in login_selectors:
             if is_element_present(driver, locator_type, selector):
-                loginButton = GetElement(driver, selector, locator=locator_type.name)
-                log_msg("Found login button with %s: %s" % (locator_type.name, selector))
+                loginButton = GetElement(driver, selector, locator=locator_type)
+                log_msg("Found login button with %s: %s" % (locator_type, selector))
                 break
         
         if loginButton is None:
@@ -353,8 +353,8 @@ def naukriLogin(headless=False):
             (By.XPATH, "//button[contains(text(), 'SKIP')]"),
         ]
         for locator_type, selector in skip_selectors:
-            if WaitTillElementPresent(driver, selector, locator=locator_type.name, timeout=5):
-                GetElement(driver, selector, locator=locator_type.name).click()
+            if WaitTillElementPresent(driver, selector, locator=locator_type, timeout=5):
+                GetElement(driver, selector, locator=locator_type).click()
                 break
         
         # Check for close button
