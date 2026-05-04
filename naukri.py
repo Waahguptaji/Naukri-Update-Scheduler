@@ -329,15 +329,32 @@ def naukriLogin(headless=False):
         emailFieldElement.clear()
         emailFieldElement.send_keys(username)
         time.sleep(1)
+        if not emailFieldElement.get_attribute("value"):
+            driver.execute_script(
+                "arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('input', {bubbles: true})); arguments[0].dispatchEvent(new Event('change', {bubbles: true}));",
+                emailFieldElement,
+                username,
+            )
         
         passFieldElement.clear()
         passFieldElement.send_keys(password)
         time.sleep(1)
+        if not passFieldElement.get_attribute("value"):
+            driver.execute_script(
+                "arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('input', {bubbles: true})); arguments[0].dispatchEvent(new Event('change', {bubbles: true}));",
+                passFieldElement,
+                password,
+            )
         
         try:
             loginButton.click()
         except Exception:
             driver.execute_script("arguments[0].click();", loginButton)
+        
+        try:
+            loginButton.submit()
+        except Exception:
+            pass
         
         time.sleep(5)
         log_msg("After login submit URL: %s" % driver.current_url)
